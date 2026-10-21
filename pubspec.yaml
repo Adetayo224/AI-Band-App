@@ -1,0 +1,48 @@
+name: esp32_wristband_app
+description: Companion app for the ESP32 S3 AI wristband. Pairs over Bluetooth Low Energy, streams voice to an AI assistant and plays the reply on the band.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Bluetooth Low Energy link to the ESP32 S3 band (BSD 3 licence, fine for
+  # commercial client work).
+  universal_ble: ^3.1.2
+  # Personal data, settings and conversations are stored on the phone only.
+  shared_preferences: ^2.5.6
+  # Phone microphone (used when talking from the phone instead of the band).
+  record: ^7.1.2
+  # Phone speaker playback (used when the band is away or charging).
+  audioplayers: ^6.8.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: Geist
+      fonts:
+        - asset: assets/fonts/Geist-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Geist-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Geist-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Geist-Bold.ttf
+          weight: 700
+    - family: GeistMono
+      fonts:
+        - asset: assets/fonts/GeistMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/GeistMono-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/GeistMono-SemiBold.ttf
+          weight: 600

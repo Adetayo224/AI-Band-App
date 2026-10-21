@@ -1,0 +1,29 @@
+# Flutter and Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+.idea/
+.vscode/*
+!.vscode/launch.json
+
+# Secrets: never commit the OpenAI key
+env.json
+
+# Release artifacts (publish via GitHub Releases, not git)
+*.apk
+*.aab
+*.ipa
+
+# Golden test diff output
+test/failures/
+
+# Platform build output
+android/.gradle/
+android/local.properties
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh

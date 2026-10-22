@@ -8,6 +8,7 @@ import '../models/models.dart';
 import '../state/app_store.dart';
 import 'audio_codec.dart';
 import 'band_service.dart';
+import 'ble_protocol.dart';
 import 'openai_service.dart';
 import 'phone_audio.dart';
 
@@ -45,6 +46,9 @@ class Assistant extends ChangeNotifier {
   int _micRate = 16000;
   bool _busy = false;
 
+  /// True when the current question was recorded on the band.
+  bool _usingBand = false;
+
   bool get bandReady => band.connected && !band.isDemo;
 
   /// Source to use for a new exchange: the band when it is connected and
@@ -74,6 +78,7 @@ class Assistant extends ChangeNotifier {
     _pcm.clear();
     level = 0;
     conversation ??= store.startConversation(fromBand ? MicSource.band : effectiveSource);
+    _usingBand = fromBand || effectiveSource == MicSource.band;
     phase = TalkPhase.listening;
     notifyListeners();
     try {
@@ -137,14 +142,14 @@ class Assistant extends ChangeNotifier {
         return;
       }
       if (ms < 400) {
-        _fail('That was too short. Hold on a moment longer and try again.');
+        _fail('That was too short. Hold on a moment longer and try again.', voice: BandVoice.notHeard);
         return;
       }
       final wav = Pcm.wav(pcm, rate);
       final s = store.settings;
       final text = await ai.transcribe(wav, language: s.autoDetectLanguage ? null : s.language);
       if (text.isEmpty) {
-        _fail('I did not catch that. Please try again.');
+        _fail('I did not catch that. Please try again.', voice: BandVoice.notHeard);
         return;
       }
       userText = text;
@@ -171,10 +176,18 @@ class Assistant extends ChangeNotifier {
       if (s.vibrateOnReply && band.connected) await band.vibrate(1);
       await _play(speech, ttsRate, replyWav);
     } on OpenAiException catch (e) {
-      _fail(e.message);
+      final voice = switch (e.statusCode) {
+        401 || 403 => BandVoice.keyRejected,
+        429 || 500 || 502 || 503 => BandVoice.busy,
+        _ => BandVoice.error,
+      };
+      _fail(e.message, voice: voice);
       return;
     } on SocketException {
-      _fail('No internet connection. Check your network and try again.');
+      _fail('No internet connection. Check your network and try again.', voice: BandVoice.noInternet);
+      return;
+    } on HandshakeException {
+      _fail('No internet connection. Check your network and try again.', voice: BandVoice.noInternet);
       return;
     } catch (e) {
       _fail('$e');
@@ -199,7 +212,7 @@ class Assistant extends ChangeNotifier {
     await store.commitConversation(convo);
     phase = TalkPhase.speaking;
     notifyListeners();
-    if (band.connected) await band.vibrate(1);
+    if (band.connected && _usingBand) await band.say(BandVoice.testMode);
     await Future<void>.delayed(const Duration(milliseconds: 2500));
     _busy = false;
     if (phase == TalkPhase.speaking) {
@@ -283,11 +296,14 @@ class Assistant extends ChangeNotifier {
     }
   }
 
-  void _fail(String message) {
+  /// Shows the error in the app and, when the question came from the band,
+  /// makes the band say what went wrong.
+  void _fail(String message, {int voice = BandVoice.error}) {
     error = message;
     phase = TalkPhase.idle;
     _busy = false;
     notifyListeners();
+    if (_usingBand && band.connected) band.say(voice);
   }
 
   // ------------------------------------------------------------- control

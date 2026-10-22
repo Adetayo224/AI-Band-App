@@ -49,6 +49,7 @@ class Cmd {
   static const restart = 0x16;
   static const factoryReset = 0x17;
   static const getStatus = 0x18; // band answers with Evt.status
+  static const say = 0x19; // [BandVoice id] band speaks a stored voice prompt
   static const otaBegin = 0x20; // [imageSize u32 LE]
   static const otaEnd = 0x21; // all chunks sent, band verifies and reboots
   static const otaAbort = 0x22;
@@ -67,6 +68,18 @@ class Evt {
   static const otaResult = 0x88; // [1 ok, 0 failed]
   static const charging = 0x89; // [1 on charger, 0 off]
   static const bufferLevel = 0x8A; // [free bytes u16 LE] playback flow control
+}
+
+/// Voice prompts stored in the band firmware (voice_prompts.h), used with
+/// [Cmd.say] so the band can explain a problem out loud.
+class BandVoice {
+  static const error = 6; // "Sorry, something went wrong. Please try again."
+  static const noInternet = 7; // "Your phone has no internet connection."
+  static const noKey = 8; // "The assistant is not set up yet..."
+  static const keyRejected = 9; // "The API key was rejected..."
+  static const notHeard = 10; // "Sorry, I did not catch that..."
+  static const busy = 11; // "The assistant is busy or out of credit..."
+  static const testMode = 12; // "I heard you. Add the API key..."
 }
 
 /// Audio codecs used on the audio characteristics.

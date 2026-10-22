@@ -6,8 +6,11 @@ import 'dart:typed_data';
 import '../config.dart';
 
 class OpenAiException implements Exception {
-  OpenAiException(this.message);
+  OpenAiException(this.message, {this.statusCode});
   final String message;
+
+  /// HTTP status from OpenAI, for example 401 bad key or 429 busy or no credit.
+  final int? statusCode;
   @override
   String toString() => message;
 }
@@ -37,7 +40,7 @@ class OpenAiService {
       try {
         msg = (jsonDecode(body) as Map)['error']['message'] as String? ?? msg;
       } catch (_) {}
-      throw OpenAiException(msg);
+      throw OpenAiException(msg, statusCode: res.statusCode);
     }
     return res;
   }

@@ -457,6 +457,9 @@ class BandService extends ChangeNotifier {
   Future<void> setVibration(VibrationStrength v) => _write(Cmd.setVibration, [v.index]);
   Future<void> setButtonMode(ButtonMode m) => _write(Cmd.setButtonMode, [m.index]);
   Future<void> vibrate([int pattern = 1]) => _write(Cmd.vibrate, [pattern]);
+
+  /// Makes the band speak one of its stored voice prompts ([BandVoice]).
+  Future<void> say(int voiceId) => _write(Cmd.say, [voiceId]);
   Future<void> setName(String name) => _write(Cmd.setName, utf8.encode(name).take(20).toList());
   Future<void> restart() => _write(Cmd.restart);
   Future<void> factoryReset() => _write(Cmd.factoryReset);
